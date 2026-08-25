@@ -23,6 +23,9 @@ urlpatterns = [
     path("Dashboard/", include("Dashboard.urls")),
     path("Cases/",include("Cases.urls")),
     path("Evidence/",include("Evidence.urls")),
-    
+    path("Blockchain/",include("Blockchain.urls")),
+    path("Audit/", include("Audit.urls")),
+    path("Reports/", include("Reports.urls")),
+    path("Notifications/", include("Notification.urls")),
 ]
 

@@ -1,0 +1,5 @@
+import os
+
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+
+CONTRACT_ABI = []

@@ -42,7 +42,11 @@ INSTALLED_APPS = [
     'Accounts',
     'Dashboard',
     'Cases.apps.CasesConfig',
-    'Evidence.apps.EvidenceConfig',    
+    'Evidence.apps.EvidenceConfig', 
+    'Blockchain.apps.BlockchainConfig',   
+    'Audit.apps.AuditConfig',
+    'Reports.apps.ReportsConfig',
+    'Notification.apps.NotificationConfig',
 ]
 AUTH_USER_MODEL = "Accounts.User" 
 
@@ -61,7 +65,7 @@ ROOT_URLCONF = 'digital_evidence_locker.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,6 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 
 # Email
