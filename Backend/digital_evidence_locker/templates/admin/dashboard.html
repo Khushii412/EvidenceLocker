@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h1>Admin Dashboard</h1>
+
+    <p class="lead">
+        Welcome to the Evidence Locker Admin Dashboard.
+    </p>
+
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h4>Cases</h4>
+                <p>Manage criminal cases.</p>
+                <a href="{% url 'Cases:case_list' %}" class="btn btn-dark">View Cases</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h4>Evidence</h4>
+                <p>Manage digital evidence.</p>
+                <a href="#" class="btn btn-dark">View Evidence</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4">
+                <h4>Audit Logs</h4>
+                <p>Track system activities.</p>
+                <a href="#" class="btn btn-dark">View Logs</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
