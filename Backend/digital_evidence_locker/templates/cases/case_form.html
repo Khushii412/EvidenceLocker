@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | Evidence Locker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>{{ page_title }}</h1>
+            <p class="lead">Enter the case details below.</p>
+        </div>
+
+        <a href="{% url 'cases:case_list' %}" class="btn btn-outline-dark">
+            <i class="bi bi-arrow-left"></i> Back to Cases
+        </a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-dark">
+                    <i class="bi bi-check-lg"></i>
+                    Save Case
+                </button>
+
+                <a href="{% url 'cases:case_list' %}"
+                   class="btn btn-outline-secondary ms-2">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

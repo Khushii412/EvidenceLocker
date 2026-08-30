@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Case Details{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Case Details</h1>
+            <p class="lead">View criminal case information.</p>
+        </div>
+
+        <a href="{% url 'cases:case_list' %}" class="btn btn-outline-dark">
+            ← Back to Cases
+        </a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+
+        <h3>{{ case.case_number }}</h3>
+
+        <hr>
+
+        <p>
+            <strong>Title:</strong>
+            {{ case.title }}
+        </p>
+
+        <p>
+            <strong>Description:</strong>
+            {{ case.description|default:"No description provided." }}
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {{ case.get_status_display }}
+        </p>
+
+        <p>
+            <strong>Created By:</strong>
+            {{ case.created_by }}
+        </p>
+
+        <p>
+            <strong>Assigned Investigator:</strong>
+            {{ case.assigned_investigator|default:"Not assigned" }}
+        </p>
+
+        <p>
+            <strong>Created At:</strong>
+            {{ case.created_at }}
+        </p>
+
+        <p>
+            <strong>Last Updated:</strong>
+            {{ case.updated_at }}
+        </p>
+
+        {% if case.closed_at %}
+        <p>
+            <strong>Closed At:</strong>
+            {{ case.closed_at }}
+        </p>
+        {% endif %}
+
+        <div class="mt-4">
+
+            <a href="{% url 'cases:edit_case' case.id %}"
+               class="btn btn-dark">
+                Edit Case
+            </a>
+
+            <a href="{% url 'cases:delete_case' case.id %}"
+               class="btn btn-outline-danger">
+                Delete Case
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

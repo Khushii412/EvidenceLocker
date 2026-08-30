@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Case{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="mb-4">
+        <h1>Delete Case</h1>
+        <p class="lead">Confirm that you want to delete this case.</p>
+    </div>
+
+    <div class="card shadow-sm p-4">
+
+        <h3>{{ case.case_number }}</h3>
+
+        <hr>
+
+        <p>
+            <strong>Title:</strong>
+            {{ case.title }}
+        </p>
+
+        <p class="text-danger">
+            Are you sure you want to permanently delete this case?
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-danger">
+                Delete Case
+            </button>
+
+            <a href="{% url 'cases:case_detail' case.id %}"
+               class="btn btn-outline-dark">
+                Cancel
+            </a>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
