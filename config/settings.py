@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+SEPOLIA_RPC_URL =https://eth-sepolia.g.alchemy.com/v2/alch_s8vQjSmNs8S4jDLY9Pv3K
+CONTRACT_ADDRESS =0x9611e59d785959326f376e44abea088e4660f62c
 
 
 # Quick-start development settings - unsuitable for production
