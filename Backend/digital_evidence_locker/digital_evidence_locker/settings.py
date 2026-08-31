@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 from decouple import config
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -143,3 +144,7 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+SEPOLIA_RPC_URL = config("SEPOLIA_RPC_URL")
+CONTRACT_ADDRESS = config("CONTRACT_ADDRESS")
+PRIVATE_KEY = config("PRIVATE_KEY")

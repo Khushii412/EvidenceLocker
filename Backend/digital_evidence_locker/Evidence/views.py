@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EvidenceForm
 from .models import Evidence, EvidenceActivity
+from Blockchain.services import store_evidence_hash
 
 
 @login_required
@@ -68,12 +69,13 @@ def upload_evidence(request):
             evidence.uploaded_by = request.user
             evidence.save()
 
-            EvidenceActivity.objects.create(
-                evidence=evidence,
-                user=request.user,
-                action=EvidenceActivity.Action.UPLOADED,
-                description="Evidence uploaded."
-            )
+            # Store evidence hash on blockchain
+            blockchain_result = store_evidence_hash(evidence.file_hash)
+
+            if blockchain_result["success"]:
+                evidence.blockchain_tx_hash = blockchain_result["transaction_hash"]
+                evidence.blockchain_block_number = blockchain_result["block_number"]
+                evidence.save(update_fields=["blockchain_tx_hash", "blockchain_block_number"])
 
             messages.success(
                 request,

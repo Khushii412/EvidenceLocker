@@ -43,6 +43,24 @@ class Evidence(models.Model):
         editable=False
     )
 
+    blockchain_tx_hash = models.CharField(
+    max_length=66,
+    blank=True,
+    editable=False
+    )
+
+    blockchain_block_number = models.PositiveBigIntegerField(
+    null=True,
+    blank=True,
+    editable=False
+    )
+
+    blockchain_timestamp = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False
+    )
+
     file_size = models.PositiveBigIntegerField(
         default=0,
         editable=False
