@@ -7,16 +7,21 @@
 <div class="container mt-5">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Cases</h1>
-            <p class="text-muted">Manage criminal cases.</p>
-        </div>
+    <div>
+        <h1>Cases</h1>
+        <p>Manage criminal cases.</p>
+    </div>
+
+    <div>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-dark me-2">
+            ← Back to Dashboard
+        </a>
 
         <a href="{% url 'cases:create_case' %}" class="btn btn-dark">
-            <i class="bi bi-plus-lg"></i>
-            Create Case
+            + Create Case
         </a>
     </div>
+</div>
 
     {% if cases %}
 
