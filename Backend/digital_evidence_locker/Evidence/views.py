@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import EvidenceForm
 from .models import Evidence, EvidenceActivity
 from Blockchain.services import store_evidence_hash
+from Audit.models import AuditLog
 
 
 @login_required
@@ -45,6 +46,15 @@ def evidence_detail(request, evidence_id):
         action=EvidenceActivity.Action.VIEWED,
         description="Evidence viewed."
     )
+    AuditLog.objects.create(
+        user=request.user,
+        action="VIEW",
+        description=f"Evidence {evidence.evidence_number} viewed.",
+        evidence_id=evidence.id,
+        case_id=evidence.case.id,
+        ip_address=request.META.get("REMOTE_ADDR")
+        )
+    
 
     return render(
         request,
@@ -76,6 +86,13 @@ def upload_evidence(request):
                 evidence.blockchain_tx_hash = blockchain_result["transaction_hash"]
                 evidence.blockchain_block_number = blockchain_result["block_number"]
                 evidence.save(update_fields=["blockchain_tx_hash", "blockchain_block_number"])
+                AuditLog.objects.create(
+                user=request.user,
+                action="UPLOAD",
+                description=f"Evidence {evidence.evidence_number} uploaded.",
+                evidence_id=evidence.id,
+                case_id=evidence.case.id,
+                ip_address=request.META.get("REMOTE_ADDR"))
 
             messages.success(
                 request,

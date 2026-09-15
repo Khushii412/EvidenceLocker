@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence Details | Evidence Locker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Evidence Details</h1>
+            <p class="text-muted">View digital evidence information.</p>
+        </div>
+
+        <a href="{% url 'evidence:evidence_list' %}" class="btn btn-dark">
+            Back to Evidence
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h3>{{ evidence.title }}</h3>
+
+            <hr>
+
+            <p>
+                <strong>Evidence Number:</strong>
+                {{ evidence.evidence_number }}
+            </p>
+
+            <p>
+                <strong>Case:</strong>
+                {{ evidence.case }}
+            </p>
+
+            <p>
+                <strong>Description:</strong>
+                {{ evidence.description }}
+            </p>
+
+            <p>
+                <strong>Uploaded By:</strong>
+                {{ evidence.uploaded_by }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                {{ evidence.get_status_display }}
+            </p>
+
+            <p>
+                <strong>File Size:</strong>
+                {{ evidence.file_size }} bytes
+            </p>
+
+            <p>
+                <strong>File Hash:</strong>
+                {{ evidence.file_hash }}
+            </p>
+
+            <p>
+                <strong>Uploaded At:</strong>
+                {{ evidence.created_at }}
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

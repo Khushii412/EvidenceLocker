@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence | Evidence Locker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1>Evidence</h1>
+            <p class="text-muted">Manage digital evidence.</p>
+        </div>
+
+        <a href="{% url 'evidence:upload_evidence' %}" class="btn btn-dark">
+            <i class="bi bi-plus-lg"></i>
+            Upload Evidence
+        </a>
+
+    </div>
+
+
+    {% if evidence %}
+
+        <div class="row">
+
+            {% for item in evidence %}
+
+                <div class="col-md-6 col-lg-4 mb-4">
+
+                    <div class="card shadow-sm h-100">
+
+                        <div class="card-body">
+
+                            <h4 class="card-title">
+                                {{ item.evidence_number }}
+                            </h4>
+
+                            <h5 class="mt-3">
+                                {{ item.title }}
+                            </h5>
+
+                            <p class="text-muted">
+                                {{ item.description|truncatewords:20 }}
+                            </p>
+
+                            <p>
+                                <strong>Case:</strong>
+                                {{ item.case.case_number }}
+                            </p>
+
+                            <p>
+                                <strong>Status:</strong>
+                                {{ item.get_status_display }}
+                            </p>
+
+                            <p>
+                                <strong>Uploaded By:</strong>
+                                {{ item.uploaded_by.username }}
+                            </p>
+
+                            <p>
+                                <strong>Uploaded:</strong>
+                                {{ item.created_at|date:"d M Y, H:i" }}
+                            </p>
+
+                            <a
+                                href="{% url 'evidence:evidence_detail' item.id %}"
+                                class="btn btn-dark"
+                            >
+                                <i class="bi bi-eye"></i>
+                                View Evidence
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-secondary">
+            No evidence has been uploaded yet.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

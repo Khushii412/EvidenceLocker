@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs | Evidence Locker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Audit Logs</h1>
+            <p class="text-muted">
+                Track system activities and evidence locker events.
+            </p>
+        </div>
+
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-dark">
+            Back to Dashboard
+        </a>
+    </div>
+
+
+    {% if logs %}
+
+        <div class="card shadow-sm">
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-dark">
+                            <tr>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>IP Address</th>
+                                <th>Case ID</th>
+                                <th>Evidence ID</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for log in logs %}
+
+                                <tr>
+
+                                    <td>
+                                        {% if log.user %}
+                                            {{ log.user.username }}
+                                        {% else %}
+                                            Unknown User
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <strong>{{ log.get_action_display }}</strong>
+                                    </td>
+
+                                    <td>
+                                        {{ log.description }}
+                                    </td>
+
+                                    <td>
+                                        {% if log.ip_address %}
+                                            {{ log.ip_address }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if log.case_id %}
+                                            {{ log.case_id }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if log.evidence_id %}
+                                            {{ log.evidence_id }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ log.timestamp|date:"d M Y, H:i" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-secondary">
+            No audit logs have been recorded yet.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

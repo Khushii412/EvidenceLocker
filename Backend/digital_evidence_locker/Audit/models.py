@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
+
 class AuditLog(models.Model):
 
     ACTION_CHOICES = [
