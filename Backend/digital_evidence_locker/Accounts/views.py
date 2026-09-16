@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+#from django.contrib.auth.forms import UserCreationForm
+from .forms import RegistrationForm
 
 from .models import User
 
@@ -116,4 +118,31 @@ def user_dashboard(request):
     return render(
         request,
         "accounts/user_dashboard.html"
+    )
+
+
+
+
+def register_view(request):
+
+    if request.method == "POST":
+        form = RegistrationForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Account created successfully. Please log in."
+            )
+
+            return redirect("login")
+
+    else:
+        form = RegistrationForm()
+
+    return render(
+        request,
+        "accounts/register.html",
+        {"form": form}
     )
