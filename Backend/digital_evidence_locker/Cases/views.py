@@ -5,9 +5,27 @@ from django.db.models.deletion import ProtectedError
 from .forms import CaseForm
 from .models import Case
 from Audit.models import AuditLog
+from functools import wraps
+from django.core.exceptions import PermissionDenied
 
 
-@login_required
+
+
+def role_required(*allowed_roles):
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if request.user.role not in allowed_roles:
+                raise PermissionDenied(
+                    "You do not have permission to access this page."
+                )
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+@role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def case_list(request):
     cases = Case.objects.select_related(
         "created_by",
@@ -21,7 +39,7 @@ def case_list(request):
     )
 
 
-@login_required
+@role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def case_detail(request, case_id):
     case = get_object_or_404(
         Case.objects.select_related(
@@ -45,7 +63,7 @@ def case_detail(request, case_id):
     )
 
 
-@login_required
+@role_required("ADMIN", "INVESTIGATOR")
 def create_case(request):
 
     if request.method == "POST":
@@ -84,7 +102,7 @@ def create_case(request):
     )
 
 
-@login_required
+@role_required("ADMIN", "INVESTIGATOR")
 def edit_case(request, case_id):
 
     case = get_object_or_404(Case, id=case_id)
@@ -130,7 +148,7 @@ def edit_case(request, case_id):
 
 
 
-@login_required
+@role_required("ADMIN")
 def delete_case(request, case_id):
 
     case = get_object_or_404(Case, id=case_id)

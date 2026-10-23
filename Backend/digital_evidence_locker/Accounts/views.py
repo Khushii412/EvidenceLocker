@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 #from django.contrib.auth.forms import UserCreationForm
 from .forms import RegistrationForm
 
@@ -146,3 +146,96 @@ def register_view(request):
         "accounts/register.html",
         {"form": form}
     )
+
+
+
+@login_required
+def user_management(request):
+    if request.user.role != User.Role.ADMIN:
+        messages.error(
+            request,
+            "You are not authorized to manage users."
+        )
+        return redirect("user_dashboard")
+
+    users = User.objects.all().order_by("username")
+
+    return render(
+        request,
+        "accounts/user_management.html",
+        {"users": users}
+    )
+
+
+
+
+@login_required
+def approve_user(request, user_id):
+    if request.user.role != User.Role.ADMIN:
+        messages.error(request, "You are not authorized to manage users.")
+        return redirect("user_dashboard")
+
+    if request.method != "POST":
+        return redirect("user_management")
+
+    account = get_object_or_404(User, id=user_id)
+
+    if account.role == User.Role.ADMIN:
+        messages.error(request, "Admin accounts cannot be approved here.")
+
+    elif account.is_approved:
+        messages.error(request, "This user is already approved.")
+
+    else:
+        selected_role = request.POST.get("role")
+
+        allowed_roles = {
+            User.Role.INVESTIGATOR,
+            User.Role.FORENSIC_EXPERT,
+            User.Role.JUDGE,
+        }
+
+        if selected_role not in allowed_roles:
+            messages.error(request, "Please select a valid role.")
+        else:
+            account.role = selected_role
+            account.is_approved = True
+            account.is_active = True
+            account.save(
+                update_fields=["role", "is_approved", "is_active"]
+            )
+
+            messages.success(
+                request,
+                f"User '{account.username}' approved as "
+                f"{account.get_role_display()}."
+            )
+
+    return redirect("user_management")
+
+
+
+@login_required
+def reject_user(request, user_id):
+    if request.user.role != User.Role.ADMIN:
+        messages.error(request, "You are not authorized to manage users.")
+        return redirect("user_dashboard")
+
+    if request.method != "POST":
+        return redirect("user_management")
+
+    account = get_object_or_404(User, id=user_id)
+
+    if account.role == User.Role.ADMIN:
+        messages.error(request, "Admin accounts cannot be rejected here.")
+    elif account.is_approved:
+        messages.error(request, "Only pending users can be rejected.")
+    else:
+        account.is_active = False
+        account.save(update_fields=["is_active"])
+        messages.success(
+            request,
+            f"Registration for '{account.username}' has been rejected."
+        )
+
+    return redirect("user_management")

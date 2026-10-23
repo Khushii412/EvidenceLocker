@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from functools import wraps
+from django.core.exceptions import PermissionDenied
 
 from .forms import EvidenceForm
 from .models import Evidence, EvidenceActivity
@@ -8,7 +10,23 @@ from Blockchain.services import store_evidence_hash
 from Audit.models import AuditLog
 
 
-@login_required
+
+
+def role_required(*allowed_roles):
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if request.user.role not in allowed_roles:
+                raise PermissionDenied(
+                    "You do not have permission to access this page."
+                )
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+@role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def evidence_list(request):
 
     evidence = Evidence.objects.select_related(
@@ -25,7 +43,7 @@ def evidence_list(request):
     )
 
 
-@login_required
+@role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def evidence_detail(request, evidence_id):
 
     evidence = get_object_or_404(
@@ -66,7 +84,7 @@ def evidence_detail(request, evidence_id):
     )
 
 
-@login_required
+@role_required("ADMIN", "INVESTIGATOR")
 def upload_evidence(request):
 
     if request.method == "POST":
