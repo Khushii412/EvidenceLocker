@@ -76,20 +76,15 @@
                                 {% if not account.is_approved and account.role != "ADMIN" %}
                                     <div class="d-flex gap-2">
                                         
-                                        <form method="POST" action="{% url 'approve_user'   account.id %}">
+                                        
+                                        <form method="POST" action="{% url 'approve_user'       account.id %}">
                                             {% csrf_token %}
-
-                                            <select name="role" class="form-select form-select-sm mb-2" required>
-                                                <option value="" selected disabled>Select role</option>
-                                                <option value="INVESTIGATOR">Investigator</option>
-                                                <option value="FORENSIC_EXPERT">Forensic Expert</option>
-                                                <option value="JUDGE">Judge</option>
-                                            </select>
 
                                             <button type="submit" class="btn btn-success btn-sm">
                                                 <i class="bi bi-check-circle"></i> Approve
                                             </button>
                                         </form>
+
 
 
                                         <form method="POST"

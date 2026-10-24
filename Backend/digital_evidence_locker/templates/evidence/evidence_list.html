@@ -14,8 +14,9 @@
         </div>
 
         <div>
-            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-dark">
-                ← Back to Dashboard
+            <a href="{% if request.user.role == 'ADMIN' %}{% url 'admin_dashboard' %}{% else %} {% url 'user_dashboard' %}{% endif %}" class="btn btn-dark">
+                <i class="bi bi-arrow-left"></i>
+                 Back to Dashboard
             </a>
 
             <a href="{% url 'evidence:upload_evidence' %}" class="btn btn-dark">

@@ -97,7 +97,7 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "email"]
+        fields = ["username", "email", "role"]
 
         widgets = {
             "username": forms.TextInput(
@@ -106,7 +106,24 @@ class RegistrationForm(forms.ModelForm):
                     "placeholder": "Enter your username",
                 }
             ),
+            "role": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
         }
+
+
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["role"].choices = [
+            (User.Role.INVESTIGATOR, "Investigator"),
+            (User.Role.FORENSIC_EXPERT, "Forensic Expert"),
+            (User.Role.JUDGE, "Judge"),
+        ]
+
 
     def clean(self):
         cleaned_data = super().clean()

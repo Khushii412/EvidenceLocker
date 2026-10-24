@@ -15,7 +15,9 @@ def login_view(request):
     """
 
     if request.user.is_authenticated:
-        return redirect("admin_dashboard")
+        if request.user.role == User.Role.ADMIN:
+            return redirect("admin_dashboard")
+        return redirect("user_dashboard")
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -169,6 +171,7 @@ def user_management(request):
 
 
 
+
 @login_required
 def approve_user(request, user_id):
     if request.user.role != User.Role.ADMIN:
@@ -187,29 +190,15 @@ def approve_user(request, user_id):
         messages.error(request, "This user is already approved.")
 
     else:
-        selected_role = request.POST.get("role")
+        account.is_approved = True
+        account.is_active = True
+        account.save(update_fields=["is_approved", "is_active"])
 
-        allowed_roles = {
-            User.Role.INVESTIGATOR,
-            User.Role.FORENSIC_EXPERT,
-            User.Role.JUDGE,
-        }
-
-        if selected_role not in allowed_roles:
-            messages.error(request, "Please select a valid role.")
-        else:
-            account.role = selected_role
-            account.is_approved = True
-            account.is_active = True
-            account.save(
-                update_fields=["role", "is_approved", "is_active"]
-            )
-
-            messages.success(
-                request,
-                f"User '{account.username}' approved as "
-                f"{account.get_role_display()}."
-            )
+        messages.success(
+            request,
+            f"User '{account.username}' approved as "
+            f"{account.get_role_display()}."
+        )
 
     return redirect("user_management")
 
