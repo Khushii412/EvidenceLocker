@@ -44,6 +44,26 @@ class Case(models.Model):
         related_name="assigned_cases"
     )
 
+    
+    assigned_forensic_expert = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_forensic_cases",
+        limit_choices_to={"role": "FORENSIC_EXPERT"}
+    )
+
+    assigned_judge = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_judge_cases",
+        limit_choices_to={"role": "JUDGE"}
+    )
+
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )

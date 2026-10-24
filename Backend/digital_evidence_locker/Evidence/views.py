@@ -8,7 +8,7 @@ from .forms import EvidenceForm
 from .models import Evidence, EvidenceActivity
 from Blockchain.services import store_evidence_hash
 from Audit.models import AuditLog
-
+from django.core.exceptions import PermissionDenied
 
 
 
@@ -26,26 +26,41 @@ def role_required(*allowed_roles):
     return decorator
 
 
+
+
 @role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def evidence_list(request):
-
     evidence = Evidence.objects.select_related(
         "case",
         "uploaded_by"
     )
 
+    if request.user.role == "ADMIN":
+        pass
+    elif request.user.role == "INVESTIGATOR":
+        evidence = evidence.filter(
+            case__assigned_investigator=request.user
+        )
+    elif request.user.role == "FORENSIC_EXPERT":
+        evidence = evidence.filter(
+            case__assigned_forensic_expert=request.user
+        )
+    elif request.user.role == "JUDGE":
+        evidence = evidence.filter(
+            case__assigned_judge=request.user
+        )
+
     return render(
         request,
         "evidence/evidence_list.html",
-        {
-            "evidence": evidence
-        }
+        {"evidence": evidence}
     )
+
+
 
 
 @role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def evidence_detail(request, evidence_id):
-
     evidence = get_object_or_404(
         Evidence.objects.select_related(
             "case",
@@ -54,9 +69,24 @@ def evidence_detail(request, evidence_id):
         id=evidence_id
     )
 
-    activities = evidence.activities.select_related(
-        "user"
-    )
+    case = evidence.case
+
+    # Verify that the user is assigned to this case.
+    if request.user.role == "INVESTIGATOR":
+        authorized = case.assigned_investigator_id == request.user.id
+    elif request.user.role == "FORENSIC_EXPERT":
+        authorized = case.assigned_forensic_expert_id == request.user.id
+    elif request.user.role == "JUDGE":
+        authorized = case.assigned_judge_id == request.user.id
+    else:
+        authorized = True  # Admin
+
+    if not authorized:
+        raise PermissionDenied(
+            "You are not authorized to view this evidence."
+        )
+
+    activities = evidence.activities.select_related("user")
 
     EvidenceActivity.objects.create(
         evidence=evidence,
@@ -64,15 +94,15 @@ def evidence_detail(request, evidence_id):
         action=EvidenceActivity.Action.VIEWED,
         description="Evidence viewed."
     )
+
     AuditLog.objects.create(
         user=request.user,
         action="VIEW",
         description=f"Evidence {evidence.evidence_number} viewed.",
         evidence_id=evidence.id,
-        case_id=evidence.case.id,
+        case_id=case.id,
         ip_address=request.META.get("REMOTE_ADDR")
-        )
-    
+    )
 
     return render(
         request,

@@ -1,3 +1,4 @@
+
 from django import forms
 from .models import Case
 from Accounts.models import User
@@ -12,6 +13,8 @@ class CaseForm(forms.ModelForm):
             "title",
             "description",
             "assigned_investigator",
+            "assigned_forensic_expert",
+            "assigned_judge",
         ]
 
         widgets = {
@@ -35,9 +38,13 @@ class CaseForm(forms.ModelForm):
                 }
             ),
             "assigned_investigator": forms.Select(
-                attrs={
-                    "class": "form-select"
-                }
+                attrs={"class": "form-select"}
+            ),
+            "assigned_forensic_expert": forms.Select(
+                attrs={"class": "form-select"}
+            ),
+            "assigned_judge": forms.Select(
+                attrs={"class": "form-select"}
             ),
         }
 
@@ -50,4 +57,18 @@ class CaseForm(forms.ModelForm):
             is_active=True
         )
 
+        self.fields["assigned_forensic_expert"].queryset = User.objects.filter(
+            role=User.Role.FORENSIC_EXPERT,
+            is_approved=True,
+            is_active=True
+        )
+
+        self.fields["assigned_judge"].queryset = User.objects.filter(
+            role=User.Role.JUDGE,
+            is_approved=True,
+            is_active=True
+        )
+
         self.fields["assigned_investigator"].required = False
+        self.fields["assigned_forensic_expert"].required = False
+        self.fields["assigned_judge"].required = False
