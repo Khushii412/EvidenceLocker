@@ -76,11 +76,11 @@ def logout_view(request):
     return redirect("login")
 
 
+
 @login_required
 def admin_dashboard(request):
     """
-    Admin dashboard.
-    Only users with ADMIN role can access it.
+    Admin dashboard with case, evidence, user, and activity statistics.
     """
 
     if request.user.role != User.Role.ADMIN:
@@ -90,17 +90,43 @@ def admin_dashboard(request):
         )
         return redirect("user_dashboard")
 
+    from Cases.models import Case
+    from Evidence.models import Evidence
+    from Audit.models import AuditLog
+
+    cases = Case.objects.all()
+    evidence = Evidence.objects.all()
+
     context = {
+        # Existing user statistics
         "total_users": User.objects.count(),
         "approved_users": User.objects.filter(
             is_approved=True
         ).count(),
         "pending_users": User.objects.filter(
-            is_approved=False
-        ).count(),
+            is_approved=False,
+            is_active=True
+        ).exclude(role=User.Role.ADMIN).count(),
         "active_users": User.objects.filter(
             is_active=True
         ).count(),
+
+        # Case and evidence statistics
+        "open_cases_count": cases.filter(
+            status=Case.Status.OPEN
+        ).count(),
+        "closed_cases_count": cases.filter(
+            status=Case.Status.CLOSED
+        ).count(),
+        "evidence_count": evidence.count(),
+
+        # Recent cases
+        "dashboard_cases": cases.order_by("-updated_at")[:5],
+
+        # Recent system activities
+        "recent_activities": AuditLog.objects.select_related(
+            "user"
+        ).order_by("-timestamp")[:10],
     }
 
     return render(
@@ -110,18 +136,66 @@ def admin_dashboard(request):
     )
 
 
+
 @login_required
 def user_dashboard(request):
-    """
-    Temporary dashboard for non-admin users.
-    Later this will redirect users to their respective dashboards.
-    """
+    from Cases.models import Case
+    from Evidence.models import Evidence
+    from Audit.models import AuditLog
+
+    user = request.user
+
+    # Show only cases assigned to this user.
+    cases = Case.objects.none()
+
+    if user.role == User.Role.INVESTIGATOR:
+        cases = Case.objects.filter(assigned_investigator=user)
+
+    elif user.role == User.Role.FORENSIC_EXPERT:
+        cases = Case.objects.filter(assigned_forensic_expert=user)
+
+    elif user.role == User.Role.JUDGE:
+        cases = Case.objects.filter(assigned_judge=user)
+
+    # Evidence related to assigned cases.
+    evidence = Evidence.objects.filter(case__in=cases)
+
+    # Recent activity related to assigned cases.
+    recent_activities = AuditLog.objects.filter(
+        case_id__in=cases.values("id")
+    ).select_related("user").order_by("-timestamp")[:5]
+
+    context = {
+        "dashboard_cases": cases.order_by("-updated_at")[:5],
+
+        "total_cases_count": cases.count(),
+
+        "open_cases_count": cases.filter(
+            status=Case.Status.OPEN
+        ).count(),
+
+        "closed_cases_count": cases.filter(
+            status=Case.Status.CLOSED
+        ).count(),
+
+        "evidence_count": evidence.count(),
+
+        "forensic_pending_count": cases.filter(
+            status=Case.Status.UNDER_INVESTIGATION
+        ).count() if user.role == User.Role.FORENSIC_EXPERT else 0,
+
+        "court_cases_count": cases.filter(
+            status=Case.Status.SUBMITTED_TO_COURT
+        ).count() if user.role == User.Role.JUDGE else 0,
+
+        "recent_activities": recent_activities,
+    }
 
     return render(
         request,
-        "accounts/user_dashboard.html"
+        "accounts/user_dashboard.html",
+        context
     )
-
 
 
 

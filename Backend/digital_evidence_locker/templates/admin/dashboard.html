@@ -1,59 +1,207 @@
+
 {% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
-    <h1>Admin Dashboard</h1>
+<div class="container mt-5 mb-5">
 
-    <p class="lead">
-        Welcome to the Evidence Locker Admin Dashboard.
-    </p>
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h1 class="fw-bold">Admin Dashboard</h1>
+            <p class="text-muted mb-0">
+                Welcome to your Digital Evidence Locker control center.
+            </p>
+        </div>
+        <span class="badge bg-dark fs-6 mt-2">Administrator</span>
+    </div>
 
-    <div class="row mt-4">
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
 
-        <div class="col-md-4">
-            <div class="card shadow-sm p-4">
-                <h4>Cases</h4>
-                <p>Manage criminal cases.</p>
-                <a href="{% url 'cases:case_list' %}" class="btn btn-dark">View Cases</a>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Open Cases</div>
+                    <h2 class="fw-bold mt-2">{{ open_cases_count }}</h2>
+                    <a href="{% url 'cases:case_list' %}?status=OPEN"
+                        class="small text-decoration-none">View open cases
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm p-4">
-                <h4>Evidence</h4>
-                <p>Manage digital evidence.</p>
-                <a href="{% url 'evidence:evidence_list' %}" class="btn btn-dark">
-                     View Evidence
-                </a>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Closed Cases</div>
+                    <h2 class="fw-bold mt-2">{{ closed_cases_count }}</h2>
+                    <a href="{% url 'cases:case_list' %}?status=CLOSED"
+                        class="small text-decoration-none">View closed cases
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm p-4">
-                <h4>Audit Logs</h4>
-                <p>Track system activities.</p>
-                
-                <a href="{% url 'audit:audit_log_list' %}" class="btn btn-dark">
-                    View Logs
-                </a>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Evidence Records</div>
+                    <h2 class="fw-bold mt-2">{{ evidence_count }}</h2>
+                    <a href="{% url 'evidence:evidence_list' %}"
+                       class="small text-decoration-none">View evidence</a>
+                </div>
             </div>
         </div>
 
-
-        
-        <div class="col-md-4 mb-3 mt-4">
-            <div class="card shadow-sm p-4 h-100">
-                <h4><i class="bi bi-people"></i> User Management</h4>
-                <p>View registered users and check their approval status.</p>
-                <a href="{% url 'user_management' %}" class="btn btn-dark">
-                    Manage Users
-                </a>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Pending Approvals</div>
+                    <h2 class="fw-bold mt-2">{{ pending_users_count }}</h2>
+                    <a href="{% url 'user_management' %}"
+                       class="small text-decoration-none">Manage users</a>
+                </div>
             </div>
         </div>
-
 
     </div>
+
+    <!-- Main Navigation -->
+    <h4 class="fw-bold mb-3">Management</h4>
+
+    <div class="row g-3 mb-5">
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5>Cases</h5>
+                    <p class="text-muted">Manage cases and assignments.</p>
+                    <a href="{% url 'cases:case_list' %}"
+                       class="btn btn-dark">View Cases</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5>Evidence</h5>
+                    <p class="text-muted">Access stored evidence records.</p>
+                    <a href="{% url 'evidence:evidence_list' %}"
+                       class="btn btn-dark">View Evidence</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5>Audit Logs</h5>
+                    <p class="text-muted">Review recorded system activity.</p>
+                    <a href="{% url 'audit:audit_log_list' %}"
+                       class="btn btn-dark">View Logs</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5>User Management</h5>
+                    <p class="text-muted">Review accounts and approvals.</p>
+                    <a href="{% url 'user_management' %}"
+                       class="btn btn-dark">Manage Users</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Cases -->
+    <h4 class="fw-bold mb-3">Recently Updated Cases</h4>
+
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in dashboard_cases %}
+                    <tr>
+                        <td>{{ case.case_number }}</td>
+                        <td>{{ case.title }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ case.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ case.updated_at|date:"d M Y, H:i" }}</td>
+                        <td>
+                            <a href="{% url 'cases:case_detail' case.id %}"
+                               class="btn btn-sm btn-outline-dark">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No cases available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <h4 class="fw-bold mb-3">Recent Activities</h4>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in recent_activities %}
+                    <tr>
+                        <td>{{ activity.timestamp|date:"d M Y, H:i" }}</td>
+                        <td>{{ activity.user|default:"System" }}</td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ activity.action }}
+                            </span>
+                        </td>
+                        <td>{{ activity.description }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            No recent activities found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}

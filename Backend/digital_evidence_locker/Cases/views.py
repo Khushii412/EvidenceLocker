@@ -28,6 +28,7 @@ def role_required(*allowed_roles):
 
 
 
+
 @role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
 def case_list(request):
     cases = Case.objects.select_related(
@@ -37,6 +38,7 @@ def case_list(request):
         "assigned_judge",
     )
 
+    # First, restrict cases according to the user's role.
     if request.user.role == User.Role.ADMIN:
         pass
     elif request.user.role == User.Role.INVESTIGATOR:
@@ -46,12 +48,21 @@ def case_list(request):
     elif request.user.role == User.Role.JUDGE:
         cases = cases.filter(assigned_judge=request.user)
 
+    # Then, apply the optional status filter.
+    status = request.GET.get("status")
+    valid_statuses = Case.Status.values
+
+    if status in valid_statuses:
+        cases = cases.filter(status=status)
+
     return render(
         request,
         "cases/case_list.html",
-        {"cases": cases}
+        {
+            "cases": cases,
+            "selected_status": status if status in valid_statuses else "",
+        }
     )
-
 
 
 @role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
