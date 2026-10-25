@@ -51,3 +51,21 @@ class EvidenceForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        from Cases.models import Case
+        from Accounts.models import User
+
+        if user and user.role == User.Role.ADMIN:
+            self.fields["case"].queryset = Case.objects.all()
+
+        elif user and user.role == User.Role.INVESTIGATOR:
+            self.fields["case"].queryset = Case.objects.filter(
+                assigned_investigator=user
+            )
+
+        else:
+            self.fields["case"].queryset = Case.objects.none()

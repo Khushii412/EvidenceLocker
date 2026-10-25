@@ -31,4 +31,10 @@ urlpatterns = [
         views.delete_case,
         name="delete_case"
     ),
+
+    path(
+    "<int:case_id>/update-status/",
+    views.update_case_status,
+    name="update_case_status",
+    ),
 ]

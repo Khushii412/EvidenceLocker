@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Case Details{% endblock %}
@@ -9,18 +10,17 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>Case Details</h1>
-            <p class="lead">View criminal case information.</p>
+            <p class="lead">View criminal case information and manage its workflow.</p>
         </div>
 
         <a href="{% url 'cases:case_list' %}" class="btn btn-outline-dark">
-            ← Back to Cases
+            &larr; Back to Cases
         </a>
     </div>
 
     <div class="card shadow-sm p-4">
 
         <h3>{{ case.case_number }}</h3>
-
         <hr>
 
         <p>
@@ -34,9 +34,80 @@
         </p>
 
         <p>
-            <strong>Status:</strong>
-            {{ case.get_status_display }}
+            <strong>Current Status:</strong>
+            <span class="badge bg-primary">
+                {{ case.get_status_display }}
+            </span>
         </p>
+
+        <hr>
+
+        <h5 class="mt-3">Case Workflow</h5>
+
+        {% if user.role == "ADMIN" or user.role == "INVESTIGATOR" or user.role == "FORENSIC_EXPERT" or user.role == "JUDGE" %}
+
+            {% if user.role == "ADMIN" or user.role == "INVESTIGATOR" and case.assigned_investigator_id == user.id and case.status == "OPEN" or user.role == "FORENSIC_EXPERT" and case.assigned_forensic_expert_id == user.id and case.status == "UNDER_INVESTIGATION" or user.role == "INVESTIGATOR" and case.assigned_investigator_id == user.id and case.status == "FORENSIC_ANALYSIS" or user.role == "JUDGE" and case.assigned_judge_id == user.id and case.status == "SUBMITTED_TO_COURT" %}
+
+                <form method="POST"
+                      action="{% url 'cases:update_case_status' case.id %}"
+                      class="mt-3">
+
+                    {% csrf_token %}
+
+                    <label for="status" class="form-label">
+                        Move case to next stage
+                    </label>
+
+                    <select name="status" id="status" class="form-select mb-3" required>
+
+                        {% if user.role == "ADMIN" %}
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}"
+                                    {% if value == case.status %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+
+                        {% elif user.role == "INVESTIGATOR" and case.status == "OPEN" %}
+                            <option value="UNDER_INVESTIGATION">
+                                Under Investigation
+                            </option>
+
+                        {% elif user.role == "FORENSIC_EXPERT" and case.status == "UNDER_INVESTIGATION" %}
+                            <option value="FORENSIC_ANALYSIS">
+                                Forensic Analysis
+                            </option>
+
+                        {% elif user.role == "INVESTIGATOR" and case.status == "FORENSIC_ANALYSIS" %}
+                            <option value="SUBMITTED_TO_COURT">
+                                Submitted to Court
+                            </option>
+
+                        {% elif user.role == "JUDGE" and case.status == "SUBMITTED_TO_COURT" %}
+                            <option value="CLOSED">
+                                Closed
+                            </option>
+                        {% endif %}
+
+                    </select>
+
+                    <button type="submit" class="btn btn-primary">
+                        Update Status
+                    </button>
+
+                </form>
+
+            {% else %}
+                <p class="text-muted">
+                    No status change is currently available for your role at this stage.
+                </p>
+            {% endif %}
+
+        {% endif %}
+
+        <hr>
+
+        <h5>Case Assignments</h5>
 
         <p>
             <strong>Created By:</strong>
@@ -49,6 +120,18 @@
         </p>
 
         <p>
+            <strong>Assigned Forensic Expert:</strong>
+            {{ case.assigned_forensic_expert|default:"Not assigned" }}
+        </p>
+
+        <p>
+            <strong>Assigned Judge:</strong>
+            {{ case.assigned_judge|default:"Not assigned" }}
+        </p>
+
+        <hr>
+
+        <p>
             <strong>Created At:</strong>
             {{ case.created_at }}
         </p>
@@ -59,25 +142,33 @@
         </p>
 
         {% if case.closed_at %}
-        <p>
-            <strong>Closed At:</strong>
-            {{ case.closed_at }}
-        </p>
+            <p>
+                <strong>Closed At:</strong>
+                {{ case.closed_at }}
+            </p>
         {% endif %}
 
-        <div class="mt-4">
+        {% if user.role == "ADMIN" %}
+            <div class="mt-4">
+                <a href="{% url 'cases:edit_case' case.id %}"
+                   class="btn btn-dark">
+                    Edit Case
+                </a>
 
-            <a href="{% url 'cases:edit_case' case.id %}"
-               class="btn btn-dark">
-                Edit Case
-            </a>
+                <a href="{% url 'cases:delete_case' case.id %}"
+                   class="btn btn-outline-danger">
+                    Delete Case
+                </a>
+            </div>
 
-            <a href="{% url 'cases:delete_case' case.id %}"
-               class="btn btn-outline-danger">
-                Delete Case
-            </a>
-
-        </div>
+        {% elif user.role == "INVESTIGATOR" and case.assigned_investigator_id == user.id %}
+            <div class="mt-4">
+                <a href="{% url 'cases:edit_case' case.id %}"
+                   class="btn btn-dark">
+                    Edit Case
+                </a>
+            </div>
+        {% endif %}
 
     </div>
 

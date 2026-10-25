@@ -89,10 +89,12 @@ def case_detail(request, case_id):
         case_id=case.id
     )
 
+    status_choices = Case.Status.choices
+
     return render(
         request,
         "cases/case_detail.html",
-        {"case": case}
+        {"case": case, "status_choices": status_choices}
     )
 
 
@@ -106,9 +108,10 @@ def create_case(request):
             case = form.save(commit=False)
             case.created_by = request.user
 
-            # Only Admins can assign people to a case.
-            if request.user.role != User.Role.ADMIN:
-                case.assigned_investigator = None
+            # Admins can assign all roles.
+            # Investigators are automatically assigned to cases they create.
+            if request.user.role == User.Role.INVESTIGATOR:
+                case.assigned_investigator = request.user
                 case.assigned_forensic_expert = None
                 case.assigned_judge = None
 
@@ -232,3 +235,92 @@ def delete_case(request, case_id):
         "cases/case_confirm_delete.html",
         {"case": case}
     )
+
+
+
+
+@role_required("ADMIN", "INVESTIGATOR", "FORENSIC_EXPERT", "JUDGE")
+def update_case_status(request, case_id):
+    if request.method != "POST":
+        return redirect("cases:case_detail", case_id=case_id)
+
+    case = get_object_or_404(Case, id=case_id)
+    new_status = request.POST.get("status")
+
+    # Admin can change any case status.
+    if request.user.role == User.Role.ADMIN:
+        allowed = True
+
+    # Investigator can start investigation or submit to court.
+    elif request.user.role == User.Role.INVESTIGATOR:
+        allowed = (
+            case.assigned_investigator_id == request.user.id
+            and (
+                (
+                    case.status == Case.Status.OPEN
+                    and new_status == Case.Status.UNDER_INVESTIGATION
+                )
+                or (
+                    case.status == Case.Status.FORENSIC_ANALYSIS
+                    and new_status == Case.Status.SUBMITTED_TO_COURT
+                )
+            )
+        )
+
+    # Forensic Expert can begin forensic analysis.
+    elif request.user.role == User.Role.FORENSIC_EXPERT:
+        allowed = (
+            case.assigned_forensic_expert_id == request.user.id
+            and case.status == Case.Status.UNDER_INVESTIGATION
+            and new_status == Case.Status.FORENSIC_ANALYSIS
+        )
+
+    # Judge can close a case submitted to court.
+    elif request.user.role == User.Role.JUDGE:
+        allowed = (
+            case.assigned_judge_id == request.user.id
+            and case.status == Case.Status.SUBMITTED_TO_COURT
+            and new_status == Case.Status.CLOSED
+        )
+
+    else:
+        allowed = False
+
+    # Reject invalid transitions and unauthorized changes.
+    if not allowed:
+        messages.error(
+            request,
+            "You are not authorized to make this status change."
+        )
+        return redirect("cases:case_detail", case_id=case.id)
+
+    # Validate the status value.
+    valid_statuses = Case.Status.values
+    if new_status not in valid_statuses:
+        messages.error(request, "Invalid case status.")
+        return redirect("cases:case_detail", case_id=case.id)
+
+    old_status = case.status
+    case.status = new_status
+
+    if new_status == Case.Status.CLOSED:
+        from django.utils import timezone
+        case.closed_at = timezone.now()
+    else:
+        case.closed_at = None
+
+    case.save()
+
+    AuditLog.objects.create(
+        user=request.user,
+        action="UPDATE",
+        description=(
+            f"Case {case.case_number} status changed "
+            f"from {old_status} to {new_status}."
+        ),
+        ip_address=request.META.get("REMOTE_ADDR"),
+        case_id=case.id,
+    )
+
+    messages.success(request, "Case status updated successfully.")
+    return redirect("cases:case_detail", case_id=case.id)

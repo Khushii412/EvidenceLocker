@@ -119,11 +119,21 @@ def upload_evidence(request):
 
     if request.method == "POST":
 
-        form = EvidenceForm(request.POST, request.FILES)
+        form = EvidenceForm(request.POST, request.FILES, user=request.user)
 
         if form.is_valid():
 
             evidence = form.save(commit=False)
+
+            # Check that Investigator uploads only to assigned cases
+            if (
+                request.user.role == "INVESTIGATOR"
+                and evidence.case.assigned_investigator_id != request.user.id
+            ):
+                raise PermissionDenied(
+                    "You can upload evidence only to cases assigned to you."
+                )
+
             evidence.uploaded_by = request.user
             evidence.save()
 
@@ -153,7 +163,7 @@ def upload_evidence(request):
             )
 
     else:
-        form = EvidenceForm()
+        form = EvidenceForm(user=request.user)
 
     return render(
         request,
